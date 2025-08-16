@@ -1,0 +1,100 @@
+
+
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8"/>  
+<title>JARVIS AI Voice Assistant</title>  
+<meta name="viewport" content="width=device-width, initial-scale=1"/>  
+<style>  
+    html,body{  
+        height:100%;  
+        margin:0;  
+        background:linear-gradient(to bottom,#04070a,#001228);  
+        display:flex;  
+        justify-content:center;  
+        align-items:center;  
+        overflow:hidden;  
+        font-family:Arial, Helvetica, sans-serif;  
+    }  
+    .voice-button{  
+        width:180px;height:104px;position:relative;cursor:pointer;transition:.2s;  
+    }  
+    .voice-button:hover{transform:scale(1.05)}  
+    .voice-button:before,.voice-button:after{  
+        content:"";position:absolute;width:0;border-left:90px solid transparent;border-right:90px solid transparent;  
+    }  
+    .voice-button:before{bottom:100%;border-bottom:52px solid #022a52;}  
+    .voice-button:after{top:100%;border-top:52px solid #022a52;}  
+    .voice-button-inner{  
+        width:180px;height:104px;background:#022a52;display:flex;justify-content:center;align-items:center;box-shadow:0 0 30px rgba(0,170,255,0.6);  
+    }  
+    .arc-reactor{width:70px;height:70px;fill:#0ff;filter:drop-shadow(0 0 12px rgba(0,255,255,.6))}  
+</style>  
+</head>  
+<body>  
+<div id="hexBtn" class="voice-button">  
+    <div class="voice-button-inner">  
+        <svg class="arc-reactor" viewBox="0 0 512 512">  
+            <path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm126.4 337.7l-34.8-60.3h-94.3v-66.9h60.7l-47-81.4-47 81.4h60.7v66.9h-94.3l-34.8 60.3 82-47.3 82 47.3z"/>  
+        </svg>  
+    </div>  
+</div>  <audio id="clickSound" src="jarvis-sound.mp3"></audio>
+
+<script>  
+const hexBtn     = document.getElementById("hexBtn");  
+const clickSound = document.getElementById("clickSound");  
+  
+// ✅ <––– YOUR ELEVENLABS API KEY HERE –––>  
+const API_KEY   = "sk_44252ff8b6193c316ba00d473053b5410507fe4918f0cb5d";  
+const VOICE_ID  = "EXAVITQu4vr4xnSDxMaL"; // (ElevenLabs Jarvis-style voice)  
+const TTS_URL   = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`;  
+  
+// Basic replies  
+function getResponse(text){  
+    text = text.trim().toLowerCase();  
+    if(text=="hello") return "Hello sir.";  
+    if(text=="who are you") return "I am Jarvis, your personal artificial intelligence assistant.";  
+    if(text.includes("time")) return "The current time is " + new Date().toLocaleTimeString();  
+    if(text.includes("date")) return "Today is " + new Date().toLocaleDateString();  
+    if(text.includes("2+4")) return "Six";  
+    return "Sorry sir, I did not understand.";  
+}  
+  
+// Play TTS voice (ElevenLabs)  
+async function speak(text){  
+    const response = await fetch(TTS_URL,{  
+        method:"POST",  
+        headers:{  
+            "Content-Type":"application/json",  
+            "xi-api-key":API_KEY  
+        },  
+        body:JSON.stringify({  
+          text:text,  
+          voice_settings:{stability:0.40,similarity_boost:0.75}  
+        })  
+    });  
+    const blob = await response.blob();  
+    const url  = URL.createObjectURL(blob);  
+    const audio = new Audio(url);  
+    audio.play();  
+}  
+  
+let recognition;  
+if('webkitSpeechRecognition' in window){  
+    recognition = new webkitSpeechRecognition();  
+    recognition.lang = "en-US";  
+    recognition.onresult = (e)=>{  
+        const transcript = e.results[0][0].transcript;  
+        console.log("User:",transcript);  
+        const reply = getResponse(transcript);  
+        speak(reply);  
+    }  
+}  
+  
+hexBtn.onclick = ()=>{  
+    clickSound.currentTime = 0;  
+    clickSound.play();  
+    if(recognition) recognition.start();  
+}  
+</script>  </body>  
+</html>
