@@ -5,133 +5,140 @@
 <title>JARVIS AI Voice Assistant</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <style>
-    html, body {
-        height:100%;
-        margin:0;
-        background:#000000; /* Black background */
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        font-family:Arial, Helvetica, sans-serif;
-    }
-    .voice-button {
-        width:150px;
-        height:150px;
-        cursor:pointer;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background:#000; /* Black button background */
-        border-radius:50%;
-        position:relative;
-        transition:.2s;
-    }
-    .voice-button:hover { transform:scale(1.05); }
-
-    /* Ring animation */
-    .ring {
-        position:absolute;
-        width:170px;
-        height:170px;
-        border:3px solid #0ff;
-        border-radius:50%;
-        top:-10px;
-        left:-10px;
-        animation: rotateRing 1s linear infinite;
-        display:none;
-        box-shadow: 0 0 15px #0ff;
-    }
-
-    @keyframes rotateRing {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .voice-button img {
-        width:130px;
-        height:130px;
-        border-radius:50%;
-        cursor:pointer;
-        z-index:2;
-    }
+html,body{
+  height:100%;
+  margin:0;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:Arial, Helvetica, sans-serif;
+}
+.voice-button{
+  width:300px;height:300px;background:#000;border-radius:50%;
+  display:flex;justify-content:center;align-items:center;
+  box-shadow:0 0 30px rgba(0,255,255,0.0);transition:.3s;
+}
+.voice-button.glow{box-shadow:0 0 50px rgba(0,255,255,0.9);}
+.voice-button img{width:260px;height:260px;border-radius:50%;cursor:pointer}
+#chatContainer{width:90%;max-width:600px;height:600px;display:none;flex-direction:column;background:#111;border-radius:16px;overflow:hidden;box-shadow:0 0 20px rgba(0,255,255,.4);}
+.chat-messages{flex:1;padding:10px;overflow-y:auto;}
+.chat-input-area{display:flex;padding:8px;background:#0a0a0a;}
+.chat-input{flex:1;padding:10px;border:none;background:#222;color:#fff;border-radius:8px;}
+.send-btn{width:48px;height:48px;margin-left:10px;border-radius:50%;background:#007aff;color:#fff;font-size:22px;display:flex;justify-content:center;align-items:center;cursor:pointer;}
+.message{max-width:80%;margin:4px 0;padding:8px 12px;border-radius:12px;color:#fff;}
+.message.user{background:#007aff;align-self:flex-end;}
+.message.jarvis{background:#444;align-self:flex-start;}
 </style>
 </head>
 <body>
 
-<div id="hexBtn" class="voice-button">
-    <div class="ring" id="ring"></div>
-    <img id="micImage" src="mic.png" alt="Mic Button">
+<div id="micBtn" class="voice-button">
+  <img id="micImage" src="mic.png" alt="Mic Button">
+</div>
+
+<div id="chatContainer">
+  <div id="chatMessages" class="chat-messages"></div>
+  <div class="chat-input-area">
+    <input type="text" id="userInput" placeholder="Message..." class="chat-input">
+    <div id="sendBtn" class="send-btn">➤</div>
+  </div>
 </div>
 
 <audio id="clickSound" src="jarvis-sound.mp3"></audio>
 
 <script>
-const micImage   = document.getElementById("micImage");
-const clickSound = document.getElementById("clickSound");
-const ring       = document.getElementById("ring");
+const micBtn    = document.getElementById("micBtn");
+const micImage  = document.getElementById("micImage");
+const clickSound= document.getElementById("clickSound");
+const chat      = document.getElementById("chatContainer");
+const chatMsgs  = document.getElementById("chatMessages");
+const userInput = document.getElementById("userInput");
+const sendBtn   = document.getElementById("sendBtn");
 
-// ELEVENLABS API KEY
-const API_KEY   = "sk_44252ff8b6193c316ba00d473053b5410507fe4918f0cb5d";
-const VOICE_ID  = "EXAVITQu4vr4xnSDxMaL"; 
-const TTS_URL   = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`;
+// ELEVENLABS
+const API_KEY  = "sk_44252ff8b6193c316ba00d473053b5410507fe4918f0cb5d";
+const VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
+const TTS_URL  = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`;
 
-// Basic replies
-function getResponse(text){
-    text = text.trim().toLowerCase();
-    if(text.includes("hello")) return "Hello sir.";
-    if(text.includes("who are you")) return "I am Jarvis, your personal AI assistant.";
-    if(text.includes("time")) return "The current time is " + new Date().toLocaleTimeString();
-    if(text.includes("date")) return "Today is " + new Date().toLocaleDateString();
-    if(text.includes("2+4")) return "Six";
-    return "Sorry sir, I did not understand.";
+function speak(text){
+  fetch(TTS_URL,{method:"POST",headers:{"Content-Type":"application/json","xi-api-key":API_KEY},
+  body:JSON.stringify({text,voice_settings:{stability:0.40,similarity_boost:0.75}})})
+  .then(r=>r.blob()).then(b=>new Audio(URL.createObjectURL(b)).play());
 }
 
-// Play TTS voice
-async function speak(text){
-    try {
-        const response = await fetch(TTS_URL,{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json",
-                "xi-api-key":API_KEY
-            },
-            body:JSON.stringify({
-              text:text,
-              voice_settings:{stability:0.40,similarity_boost:0.75}
-            })
-        });
-        const blob = await response.blob();
-        const url  = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.play();
-    } catch(err){
-        console.error("TTS error:", err);
-    }
+function addMessage(msg,type){
+  const d=document.createElement("div"); d.className="message "+(type==="user"?"user":"jarvis");
+  d.innerText=msg; chatMsgs.appendChild(d); chatMsgs.scrollTop=chatMsgs.scrollHeight;
 }
 
-// Speech recognition
-let recognition;
-if('webkitSpeechRecognition' in window){
-    recognition = new webkitSpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.onresult = (e)=>{
-        const transcript = e.results[0][0].transcript;
-        console.log("User said:", transcript);
-        const reply = getResponse(transcript);
-        speak(reply);
-        // Stop ring after response
-        ring.style.display = "none";
-    }
+function unlockChat(){
+  micBtn.style.display="none"; chat.style.display="flex";
+  speak("Hidden features unlocked sir.");
 }
 
-// Click event on image to start recognition
-micImage.onclick = ()=>{
-    clickSound.currentTime = 0;
-    clickSound.play();
-    ring.style.display = "block"; // Show ring animation
-    if(recognition) recognition.start();
+// voice logic
+function handleSpeechResult(msg){
+  addMessage(msg,"user");
+  if(msg.toLowerCase().trim()==="jarvis hidden features unlock"){
+    unlockChat();
+    return;
+  }
+
+  // else normal replies
+  for(let i=0;i<commandsArray.length;i++){
+     if(msg.toLowerCase().includes(commandsArray[i].question.toLowerCase())){
+       addMessage(commandsArray[i].reply,"jarvis");
+       speak(commandsArray[i].reply);
+       return;
+     }
+  }
+  addMessage("Sorry sir, I did not understand.","jarvis");
+  speak("Sorry sir, I did not understand.");
 }
+
+// CLICK + SPEECH RECO
+micImage.onclick=()=>{
+  clickSound.currentTime=0; clickSound.play();
+  micBtn.classList.add("glow");
+
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang="en-US";
+  recognition.onresult = (e)=>{
+     micBtn.classList.remove("glow");
+     const msg=e.results[0][0].transcript;
+     handleSpeechResult(msg);
+  }
+  recognition.onspeechend = ()=>{ micBtn.classList.remove("glow"); recognition.stop(); };
+  recognition.start();
+};
+
+// ⭐ LONG PRESS (5s) → Unlock
+let holdTimer;
+micImage.addEventListener("mousedown", ()=>{ 
+   holdTimer=setTimeout(()=>{ unlockChat(); },5000);
+});
+micImage.addEventListener("mouseup",   ()=>clearTimeout(holdTimer));
+micImage.addEventListener("mouseleave",()=>clearTimeout(holdTimer));
+
+// SEND button (in chat mode)
+sendBtn.onclick=()=>{
+  const v=userInput.value.trim();
+  if(!v)return;
+  addMessage(v,"user");
+  handleSpeechResult(v);
+  userInput.value="";
+};
+
+const commandsArray=[
+ {question:"hello",reply:"Hello sir."},
+ {question:"hi",reply:"Hello sir."},
+ {question:"who are you",reply:"I am Jarvis, your personal AI assistant."},
+ {question:"how are you",reply:"I am fine and ready to help sir."},
+ {question:"thank you",reply:"You are welcome sir."},
+ {question:"jarvis kya kar rahe ho",reply:"Main aapka intezar kar raha hu sir."},
+ {question:"what is your name",reply:"My name is Jarvis sir."}
+];
 </script>
-
 </body>
 </html>
