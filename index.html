@@ -1,144 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<title>JARVIS AI Voice Assistant</title>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<style>
-html,body{
-  height:100%;
-  margin:0;
-  background:#000;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-family:Arial, Helvetica, sans-serif;
-}
-.voice-button{
-  width:300px;height:300px;background:#000;border-radius:50%;
-  display:flex;justify-content:center;align-items:center;
-  box-shadow:0 0 30px rgba(0,255,255,0.0);transition:.3s;
-}
-.voice-button.glow{box-shadow:0 0 50px rgba(0,255,255,0.9);}
-.voice-button img{width:260px;height:260px;border-radius:50%;cursor:pointer}
-#chatContainer{width:90%;max-width:600px;height:600px;display:none;flex-direction:column;background:#111;border-radius:16px;overflow:hidden;box-shadow:0 0 20px rgba(0,255,255,.4);}
-.chat-messages{flex:1;padding:10px;overflow-y:auto;}
-.chat-input-area{display:flex;padding:8px;background:#0a0a0a;}
-.chat-input{flex:1;padding:10px;border:none;background:#222;color:#fff;border-radius:8px;}
-.send-btn{width:48px;height:48px;margin-left:10px;border-radius:50%;background:#007aff;color:#fff;font-size:22px;display:flex;justify-content:center;align-items:center;cursor:pointer;}
-.message{max-width:80%;margin:4px 0;padding:8px 12px;border-radius:12px;color:#fff;}
-.message.user{background:#007aff;align-self:flex-end;}
-.message.jarvis{background:#444;align-self:flex-start;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis AI</title>
+    <style>
+        /* Google Font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --body-bg: #f0f2f5;
+            --chat-bg: #ffffff;
+            --jarvis-msg-bg: #e9e9eb;
+            --user-msg-bg: #0084ff;
+            --jarvis-text-color: #000000;
+            --user-text-color: #ffffff;
+            --header-bg: #ffffff;
+            --header-text-color: #0084ff;
+            --input-bg: #ffffff;
+            --input-text-color: #000000;
+            --send-btn-bg: #0084ff;
+            --send-btn-icon-color: #ffffff;
+            --border-color: #dcdfe3;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--body-bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 95vh;
+            max-height: 900px;
+            background-color: var(--chat-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: var(--header-bg);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--header-text-color);
+            letter-spacing: 1px;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-box::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        .chat-box::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+            max-width: 75%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-content {
+            padding: 12px 18px;
+            border-radius: 20px;
+            line-height: 1.5;
+            font-size: 16px;
+        }
+
+        .jarvis-message {
+            align-self: flex-start;
+        }
+
+        .jarvis-message .message-content {
+            background-color: var(--jarvis-msg-bg);
+            color: var(--jarvis-text-color);
+            border-top-left-radius: 4px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+        }
+
+        .user-message .message-content {
+            background-color: var(--user-msg-bg);
+            color: var(--user-text-color);
+            border-top-right-radius: 4px;
+        }
+
+        .chat-input-box {
+            display: flex;
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--header-bg);
+        }
+
+        #userInput {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #userInput:focus {
+            border-color: var(--user-msg-bg);
+        }
+
+        #sendBtn {
+            background-color: var(--send-btn-bg);
+            border: none;
+            color: var(--send-btn-icon-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        #sendBtn:hover {
+            background-color: #0073e6;
+        }
+        
+        #sendBtn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            .chat-header h1 {
+                font-size: 22px;
+            }
+            .message-content {
+                font-size: 15px;
+            }
+            .chat-input-box {
+                padding: 10px;
+            }
+            #userInput {
+                padding: 10px 15px;
+            }
+            #sendBtn {
+                width: 45px;
+                height: 45px;
+                margin-left: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div id="micBtn" class="voice-button">
-  <img id="micImage" src="mic.png" alt="Mic Button">
-</div>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Jarvis</h1>
+        </div>
+        <div class="chat-box" id="chatBox">
+            <!-- Messages will be appended here by JavaScript -->
+        </div>
+        <div class="chat-input-box">
+            <input type="text" id="userInput" placeholder="Aapka sandesh yahan likhein..." autocomplete="off">
+            <button id="sendBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
 
-<div id="chatContainer">
-  <div id="chatMessages" class="chat-messages"></div>
-  <div class="chat-input-area">
-    <input type="text" id="userInput" placeholder="Message..." class="chat-input">
-    <div id="sendBtn" class="send-btn">➤</div>
-  </div>
-</div>
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
 
-<audio id="clickSound" src="jarvis-sound.mp3"></audio>
+        // --- Pre-defined Prompts and Responses ---
+        const prompts = {
+            // Greetings
+            "hello": "Hello! Main Jarvis hoon. Main aapki kaise madad kar sakta hoon?",
+            "hi": "Hi there! Main Jarvis hoon, aapka personal AI assistant.",
+            "namaste": "Namaste! Kahiye, main aapke liye kya kar sakta hoon?",
+            "kaise ho": "Main ek AI hoon, toh hamesha aacha hi rehta hoon! Aap kaise hain?",
+            "kya haal hai": "Sab aacha hai, shukriya. Aap batayein, sab theek?",
+            "good morning": "Good Morning! Aapka din shubh ho.",
+            "good afternoon": "Good Afternoon! Hope you're having a great day.",
+            "good evening": "Good Evening! Kaisa raha aapka din?",
+            "good night": "Good Night! Sweet dreams.",
 
-<script>
-const micBtn    = document.getElementById("micBtn");
-const micImage  = document.getElementById("micImage");
-const clickSound= document.getElementById("clickSound");
-const chat      = document.getElementById("chatContainer");
-const chatMsgs  = document.getElementById("chatMessages");
-const userInput = document.getElementById("userInput");
-const sendBtn   = document.getElementById("sendBtn");
+            // About Jarvis
+            "aapka naam kya hai": "Mera naam Jarvis hai. Main aapka virtual assistant hoon.",
+            "tum kaun ho": "Main Jarvis hoon, ek AI jo aapki madad ke liye banaya gaya hai.",
+            "tumhe kisne banaya": "Mujhe ek talented developer ne banaya hai, web technologies ka istemal karke.",
+            "kya karte ho": "Main aapke sawalon ka jawab de sakta hoon, ganit hal kar sakta hoon, aur bhi bahut kuch. '/open' type karke meri sari shamtaayein dekhein.",
 
-// ELEVENLABS
-const API_KEY  = "sk_44252ff8b6193c316ba00d473053b5410507fe4918f0cb5d";
-const VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
-const TTS_URL  = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`;
+            // General Questions
+            "kya kar rahe ho": "Main aapse baat kar raha hoon aur aapki madad ke liye taiyar hoon.",
+            "aaj ka din kaisa hai": "Aaj ka din bahut aacha hai! Kuch naya karne ka socha hai?",
+            "time kya hua hai": () => `Abhi ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} baj rahe hain.`,
+            "aaj ki date kya hai": () => `Aaj ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} hai.`,
+            "weather kaisa hai": "Main real-time weather nahi bata sakta, lekin aap Google par 'weather in your city' search kar sakte hain.",
+            "news batao": "Main abhi news nahi de sakta. Aap news websites jaise Aaj Tak ya NDTV check kar sakte hain.",
+            
+            // Fun & Casual
+            "joke sunao": "Ek teacher bachhe se: 'Tumhare papa kya karte hain?' Bachha: 'Jo mummy kehti hai, wahi karte hain!'",
+            "shayari sunao": "Hazaaron khwahishein aisi ki har khwahish pe dum nikle, Bahut nikle mere armaan, lekin phir bhi kam nikle. - Mirza Ghalib",
+            "kuch mazedar batao": "Kya aapko pata hai ki oont (camel) ke teen palakein (eyelids) hoti hain taaki woh registan ki ret se bach sakein?",
+            "gaana sunao": "Main gaana toh nahi ga sakta, lekin aapke liye suggest kar sakta hoon. 'Kesariya' suniye, bahut popular hai!",
+            "cricket score": "Main live score nahi bata sakta. Kripya Cricbuzz ya ESPNcricinfo check karein.",
+            "ipl kaun jeeta": "IPL ka winner har saal badalta hai. Aap is saal ka result Google par dekh sakte hain.",
+            
+            // Help & Support
+            "madad chahiye": "Zaroor, batayein main aapki kya madad kar sakta hoon?",
+            "help": "Of course! How can I assist you today?",
+            "pareshan hoon": "Chinta na karein, sab theek ho jayega. Kya main aapki koi madad kar sakta hoon?",
+            "bored ho raha hu": "Chaliye kuch interesting karte hain! Aap koi sawal puchiye ya koi game khele?",
 
-function speak(text){
-  fetch(TTS_URL,{method:"POST",headers:{"Content-Type":"application/json","xi-api-key":API_KEY},
-  body:JSON.stringify({text,voice_settings:{stability:0.40,similarity_boost:0.75}})})
-  .then(r=>r.blob()).then(b=>new Audio(URL.createObjectURL(b)).play());
-}
+            // Common Phrases
+            "thank you": "Aapka swagat hai! (You're welcome!)",
+            "shukriya": "Koi baat nahi. Khushi hui ki main aapki madad kar saka.",
+            "sorry": "Koi baat nahi, hota hai.",
+            "ok": "Theek hai.",
+            "hmm": "Hmm, iske baare mein aur batayein.",
+            "kya": "Aap kya janna chahte hain, kripya spasht karein.",
+            "kyun": "Yeh ek aacha sawal hai. Har cheez ke peeche koi na koi wajah hoti hai.",
+            "kaise": "Batayein aap kya karna chahte hain, main aapko raasta dikha sakta hoon.",
+            "bye": "Alvida! Phir milenge.",
+            
+            // More prompts
+            "apna parichay do": "Namaste, main Jarvis hoon. Ek AI language model jise aapke sawalon ke jawab dene aur aapki sahayata karne ke liye design kiya gaya hai.",
+            "aaj ka vichar": "Safalta antim nahi hai, asafalta ghatak nahi hai: yeh jaari rakhne ka sahas hai jo maayne rakhta hai. - Winston Churchill",
+            "motivation chahiye": "Aap jo bhi kar sakte hain, ya sapna dekh sakte hain, use shuru karein. Sahas mein pratibha, shakti aur jadoo hai.",
+            "movie suggest karo": "Aapko kis tarah ki filmein pasand hain? Comedy ke liye '3 Idiots' ya action ke liye 'War' dekh sakte hain.",
+            "khana kya banau": "Aaj aap 'Paneer Butter Masala' try kar sakte hain. Yeh bahut swadisht hota hai!",
+            "ghar ka kaam": "Ghar ke kaam ko chote-chote hisson mein baant lein. Sangeet sunte hue kaam karne se yeh aasan ho jata hai.",
+            "paisa kaise kamaye": "Paise kamane ke kai tarike hain jaise freelancing, online business, ya ek aachi naukri. Aapki ruchi kis mein hai?",
+            "india ki rajdhani": "Bharat ki rajdhani New Delhi hai.",
+            "sabse uncha pahad": "Duniya ka sabse uncha pahad Mount Everest hai.",
+            "sabse bada janwar": "Duniya ka sabse bada janwar Blue Whale hai."
+        };
 
-function addMessage(msg,type){
-  const d=document.createElement("div"); d.className="message "+(type==="user"?"user":"jarvis");
-  d.innerText=msg; chatMsgs.appendChild(d); chatMsgs.scrollTop=chatMsgs.scrollHeight;
-}
+        // --- Core Functions ---
 
-function unlockChat(){
-  micBtn.style.display="none"; chat.style.display="flex";
-  speak("Hidden features unlocked sir.");
-}
+        // Function to add a message to the chat box
+        const addMessage = (sender, message) => {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message', `${sender}-message`);
 
-// voice logic
-function handleSpeechResult(msg){
-  addMessage(msg,"user");
-  if(msg.toLowerCase().trim()==="jarvis hidden features unlock"){
-    unlockChat();
-    return;
-  }
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            messageContent.innerHTML = message; // Using innerHTML to render line breaks
 
-  // else normal replies
-  for(let i=0;i<commandsArray.length;i++){
-     if(msg.toLowerCase().includes(commandsArray[i].question.toLowerCase())){
-       addMessage(commandsArray[i].reply,"jarvis");
-       speak(commandsArray[i].reply);
-       return;
-     }
-  }
-  addMessage("Sorry sir, I did not understand.","jarvis");
-  speak("Sorry sir, I did not understand.");
-}
+            messageWrapper.appendChild(messageContent);
+            chatBox.appendChild(messageWrapper);
 
-// CLICK + SPEECH RECO
-micImage.onclick=()=>{
-  clickSound.currentTime=0; clickSound.play();
-  micBtn.classList.add("glow");
+            // Scroll to the latest message
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
 
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang="en-US";
-  recognition.onresult = (e)=>{
-     micBtn.classList.remove("glow");
-     const msg=e.results[0][0].transcript;
-     handleSpeechResult(msg);
-  }
-  recognition.onspeechend = ()=>{ micBtn.classList.remove("glow"); recognition.stop(); };
-  recognition.start();
-};
+        // Function to handle Jarvis's response
+        const getJarvisResponse = (userInputText) => {
+            userInputText = userInputText.toLowerCase().trim();
 
-// ⭐ LONG PRESS (5s) → Unlock
-let holdTimer;
-micImage.addEventListener("mousedown", ()=>{ 
-   holdTimer=setTimeout(()=>{ unlockChat(); },5000);
-});
-micImage.addEventListener("mouseup",   ()=>clearTimeout(holdTimer));
-micImage.addEventListener("mouseleave",()=>clearTimeout(holdTimer));
+            // 1. Check for /open command
+            if (userInputText === '/open') {
+                return `Namaste! Main Jarvis hoon. Main aapke liye yeh sab kar sakta hoon:<br><br>
+                <b>1. General Conversation:</b> Aap mujhse kisi bhi vishay par baat kar sakte hain.<br>
+                <b>2. Math Solver:</b> Aap mujhe koi bhi ganit ka sawal de sakte hain (jaise '15 * 24 / 2').<br>
+                <b>3. Quick Info:</b> Main aapko samay, tarikh, aur anya samanya jankari de sakta hoon.<br>
+                <b>4. Jokes & Shayari:</b> Main aapko jokes aur shayari suna kar entertain kar sakta hoon.<br>
+                <b>5. Pre-defined Prompts:</b> Mere paas 50 se zyada aam Bhartiya sawalon ke jawab hain.<br><br>
+                Bas apna sawal neeche type karein!`;
+            }
 
-// SEND button (in chat mode)
-sendBtn.onclick=()=>{
-  const v=userInput.value.trim();
-  if(!v)return;
-  addMessage(v,"user");
-  handleSpeechResult(v);
-  userInput.value="";
-};
+            // 2. Check for math expressions
+            // This regex checks for numbers and basic math operators.
+            const mathRegex = /^[0-9\s\+\-\*\/\(\)\.]+$/;
+            if (mathRegex.test(userInputText)) {
+                try {
+                    // IMPORTANT: eval() can be a security risk if used with untrusted input on a server.
+                    // Here, it's safe because it only runs on the user's browser.
+                    const result = eval(userInputText);
+                    return `Bilkul! ${userInputText} ka jawab hai: <b>${result}</b>`;
+                } catch (error) {
+                    return "Maaf kijiye, main is ganit ko hal nahi kar paya. Kripya aasan format mein likhein.";
+                }
+            }
 
-const commandsArray=[
- {question:"hello",reply:"Hello sir."},
- {question:"hi",reply:"Hello sir."},
- {question:"who are you",reply:"I am Jarvis, your personal AI assistant."},
- {question:"how are you",reply:"I am fine and ready to help sir."},
- {question:"thank you",reply:"You are welcome sir."},
- {question:"jarvis kya kar rahe ho",reply:"Main aapka intezar kar raha hu sir."},
- {question:"what is your name",reply:"My name is Jarvis sir."}
-];
-</script>
+            // 3. Check for pre-defined prompts (keyword matching)
+            for (const key in prompts) {
+                if (userInputText.includes(key)) {
+                    const response = prompts[key];
+                    return typeof response === 'function' ? response() : response;
+                }
+            }
+
+            // 4. Default response if no match is found
+            return "Maaf kijiye, main aapki baat samajh nahi paya. Kya aap ise alag tarike se pooch sakte hain?";
+        };
+
+        // Function to handle the sending of messages
+        const handleSend = () => {
+            const userInputText = userInput.value.trim();
+            if (userInputText === "") return;
+
+            // Add user's message to chat
+            addMessage('user', userInputText);
+            userInput.value = ""; // Clear input field
+
+            // Simulate Jarvis thinking and then respond
+            setTimeout(() => {
+                const jarvisResponse = getJarvisResponse(userInputText);
+                addMessage('jarvis', jarvisResponse);
+            }, 500); // 0.5 second delay
+        };
+
+
+        // --- Event Listeners ---
+
+        // Send button click
+        sendBtn.addEventListener('click', handleSend);
+
+        // Enter key press in input field
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                handleSend();
+            }
+        });
+
+        // --- Initial Welcome Message ---
+        window.onload = () => {
+            addMessage('jarvis', 'Namaste! Main Jarvis hoon. Aap mujhse kuch bhi pooch sakte hain. Shuru karne ke liye "hello" type karein ya "/open" likh kar meri shamtaayein dekhein.');
+            userInput.focus();
+        };
+
+    </script>
 </body>
 </html>
